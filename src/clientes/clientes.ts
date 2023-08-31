@@ -1,5 +1,23 @@
 import { Reserva } from './clientes.modelo';
 
+const reservasSum = (reserva: Reserva, acc: number, obj: Cliente): number => {
+  switch (reserva.tipoHabitacion) {
+    case 'standard':
+      acc += reserva.noches * obj.precioStandar;
+      break;
+    case 'suite':
+      acc += reserva.noches * obj.precioSuite;
+  }
+  if (reserva.pax > 1) {
+    acc += reserva.noches * (reserva.pax - 1) * obj.personaAdicional;
+  }
+  if (reserva.desayuno) {
+    acc += reserva.noches * reserva.pax * obj.precioDesayuno;
+  }
+
+  return acc;
+};
+
 class Cliente {
   reservas: Reserva[];
   precioStandar: number;
@@ -18,22 +36,10 @@ class Cliente {
   }
 
   subtotal = () =>
-    this.reservas.reduce((acc: number, reserva) => {
-      switch (reserva.tipoHabitacion) {
-        case 'standard':
-          acc += reserva.noches * this.precioStandar;
-          break;
-        case 'suite':
-          acc += reserva.noches * this.precioSuite;
-      }
-      if (reserva.pax > 1) {
-        acc += reserva.noches * (reserva.pax - 1) * this.personaAdicional;
-      }
-      if (reserva.desayuno) {
-        acc += reserva.noches * reserva.pax * this.precioDesayuno;
-      }
-      return acc;
-    }, 0);
+    this.reservas.reduce(
+      (acc: number, reserva) => reservasSum(reserva, acc, this),
+      0
+    );
 
   total = () => {
     const sub = this.subtotal();
@@ -57,22 +63,10 @@ export class ClienteTourperador extends Cliente {
   }
 
   subtotal = () => {
-    const subtotal = this.reservas.reduce((acc: number, reserva) => {
-      switch (reserva.tipoHabitacion) {
-        case 'standard':
-          acc += reserva.noches * this.precioStandar;
-          break;
-        case 'suite':
-          acc += reserva.noches * this.precioSuite;
-      }
-      if (reserva.pax > 1) {
-        acc += reserva.noches * (reserva.pax - 1) * this.personaAdicional;
-      }
-      if (reserva.desayuno) {
-        acc += reserva.noches * reserva.pax * this.precioDesayuno;
-      }
-      return acc;
-    }, 0);
+    const subtotal: number = this.reservas.reduce(
+      (acc: number, reserva) => reservasSum(reserva, acc, this),
+      0
+    );
     return subtotal - subtotal * this.descuento;
   };
 }
